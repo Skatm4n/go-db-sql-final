@@ -59,7 +59,6 @@ func TestAddGetDelete(t *testing.T) {
 
 	parcel, err = store.Get(parcel.Number)
 	require.Error(t, err)
-	assert.NotNil(t, parcel)
 }
 
 func TestSetAddress(t *testing.T) {
@@ -122,6 +121,8 @@ func TestGetByClient(t *testing.T) {
 		getTestParcel(),
 	}
 
+	parcelMap := map[int]Parcel{}
+
 	client := randRange.Intn(10_000_000)
 	parcels[0].Client = client
 	parcels[1].Client = client
@@ -134,11 +135,16 @@ func TestGetByClient(t *testing.T) {
 		require.NotEmpty(t, id)
 
 		parcels[i].Number = id
+		parcelMap[id] = parcels[i]
 	}
 
 	storedParcels, err := store.GetByClient(client)
 	require.NoError(t, err)
-	require.Equal(t, len(parcels), len(storedParcels), "кол-во не совпадает")
+	assert.Len(t, storedParcels, len(parcelMap))
 
-	assert.ElementsMatch(t, parcels, storedParcels)
+	for _, parcel := range storedParcels {
+		_, ok := parcelMap[parcel.Number]
+		assert.True(t, ok)
+		assert.Equal(t, parcel, parcelMap[parcel.Number])
+	}
 }

@@ -98,28 +98,22 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 
 func (s ParcelStore) SetAddress(number int, address string) error {
 
-	p := Parcel{}
-
-	row := s.db.QueryRow("SELECT status FROM parcel WHERE number = :number", sql.Named("number", number))
-
-	err := row.Scan(&p.Status)
+	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number AND status = :status",
+		sql.Named("status", ParcelStatusRegistered),
+		sql.Named("address", address),
+		sql.Named("number", number))
 
 	if err != nil {
 		return err
 	}
 
-	_, err = s.db.Exec("UPDATE parcel SET address = CASE WHEN status = :status THEN :address ELSE address END WHERE number = :number",
-		sql.Named("status", ParcelStatusRegistered),
-		sql.Named("address", address),
-		sql.Named("number", number))
-
-	return err
+	return nil
 
 }
 
 func (s ParcelStore) Delete(number int) error {
 
-	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status == :status",
+	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status = :status",
 		sql.Named("number", number),
 		sql.Named("status", ParcelStatusRegistered))
 
